@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "ApryxScript": {
+      "commandName": "Project",
+      "commandLineArgs": "test.apx",
+      "workingDirectory": "C:\\Users\\Folkert\\Documents\\Programmeren\\C#\\ApryxScript\\ApryxScript"
+    }
+  }
+}
