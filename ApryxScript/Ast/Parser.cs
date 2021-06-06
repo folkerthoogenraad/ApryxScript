@@ -27,7 +27,7 @@ namespace ApryxScript.Ast
             return unit;
         }
 
-        public Statement ParseStatement()
+        public Statement ParseStatement(bool native = false)
         {
             if (Current.Type == TokenType.Keyword)
             {
@@ -35,16 +35,29 @@ namespace ApryxScript.Ast
 
                 switch (type)
                 {
-                    case KeywordType.Function: return ParseFunction();
+                    case KeywordType.Function: return ParseFunction(native);
+                    case KeywordType.Native: Next();  return ParseStatement(true);
                 }
             }
-
-            else if(Current.Type == TokenType.CurlyOpen)
+            else if (Current.Type == TokenType.CurlyOpen)
             {
                 return ParseBlockStatement();
             }
+            else if (Current.Type == TokenType.SemiColon)
+            {
+                Next();
+                return new EmptyStatement();
+            }
+            else
+            {
+                ExpressionStatement statement = new ExpressionStatement();
+
+                statement.Expression = ParseExpression();
+                return statement;
+            }
 
             // Unexpceted token
+            Next();
             return null;
         }
 
@@ -66,7 +79,7 @@ namespace ApryxScript.Ast
             return block;
         }
 
-        public FunctionStatement ParseFunction()
+        public FunctionStatement ParseFunction(bool native)
         {
             if (Current.Type != TokenType.Keyword) UnexpectedToken(Current, TokenType.Keyword);
 
@@ -79,12 +92,31 @@ namespace ApryxScript.Ast
             if (Current.Type != TokenType.BracketOpen) UnexpectedToken(Current, TokenType.BracketOpen);
             Next();
 
-            // TODO parse the list in between :)
+            while(Current.Type != TokenType.BracketClose && HasNext())
+            {
+                // TODO parse parameter list?
+                ParameterSyntax parameter = new ParameterSyntax();
+
+                parameter.NameAndType = ParseNameAndType();
+
+                function.Parameters.Add(parameter);
+
+                if (Current.Type == TokenType.Comma) Next();
+            }
 
             if (Current.Type != TokenType.BracketClose) UnexpectedToken(Current, TokenType.BracketClose);
             Next();
 
+            if(Current.Type == TokenType.Operator && Current.OperatorType == OperatorType.Arrow)
+            {
+                Next();
+
+                function.ReturnType = ParseTypeName();
+            }
+
             function.Body = ParseStatement();
+
+            function.Native = native;
 
             return function;
         }
@@ -101,7 +133,51 @@ namespace ApryxScript.Ast
 
             return syntax;
         }
+        public NameAndTypeSyntax ParseNameAndType()
+        {
+            if (Current.Type != TokenType.Identifier) UnexpectedToken(Current, TokenType.Identifier);
 
+            NameAndTypeSyntax syntax = new NameAndTypeSyntax();
+
+            syntax.Name = Current.Data;
+            Next();
+
+            if (Current.Type != TokenType.Colon) UnexpectedToken(Current, TokenType.Colon);
+            Next();
+
+            syntax.Type = ParseTypeName();
+
+            return syntax;
+        }
+
+        public Expression ParseExpression(int detail = 7)
+        {
+            if (detail >= 8)
+            {
+                return ParseExpression(7);
+            }
+            else if (detail > 0)
+            {
+                return ParseExpression(detail - 1);
+            }
+
+
+            // Identifiers, Constants, Etc.
+            if(detail == 0)
+            {
+                Token t = Current;
+                Next();
+
+                if (t.Type == TokenType.String) return new StringConstantExpression(t.Data);
+                if (t.Type == TokenType.Integer) return new IntegerConstantExpression(t.Data);
+                if (t.Type == TokenType.Float) return new FloatConstantExpression(t.Data);
+                if (t.Type == TokenType.Double) return new DoubleConstantExpression(t.Data);
+                if (t.Type == TokenType.Identifier) return new IdentifierExpression(t.Data);
+
+                // We can't parse this...
+                return null;
+            }
+        }
 
         public void UnexpectedToken(Token token)
         {

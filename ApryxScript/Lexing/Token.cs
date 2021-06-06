@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApryxScript.Util;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -25,6 +26,10 @@ namespace ApryxScript.Lexing
         Double,
         String,
 
+        Comma,
+        Dot,
+
+        Colon,
         SemiColon,
     }
 
@@ -51,5 +56,8 @@ namespace ApryxScript.Lexing
         {
             return Type.ToString() + "(" + Data + ")";
         }
+
+        public KeywordType KeywordType => Language.GetKeywordType(Data);
+        public OperatorType OperatorType => Language.GetOperatorType(Data);
     }
 }

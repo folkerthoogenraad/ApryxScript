@@ -1,5 +1,6 @@
 ﻿using ApryxScript.Ast;
 using ApryxScript.Lexing;
+using ApryxScript.Transform;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -22,13 +23,16 @@ namespace ApryxScript
             {
                 Lexer lexer = new Lexer(stream);
 
-                var tokens = lexer.Where(token => token.Type != TokenType.Whitespace).ToList(); //
+                var tokens = lexer.Where(token => token.Type != TokenType.Whitespace).ToList();
 
                 Parser parser = new Parser(tokens);
 
                 var unit = parser.ParseCompilationUnit();
 
-                Console.WriteLine(unit);
+                CPPOutput output = new CPPOutput();
+                output.Visit(unit);
+
+                Console.WriteLine(output.Result);
             }
 
             return;

@@ -19,7 +19,7 @@ namespace ApryxScript.Lexing
 
         public bool HasNext()
         {
-            return Reader.HasNext();
+            return Reader.HasCurrent();
         }
 
         public Token Next()
@@ -57,6 +57,26 @@ namespace ApryxScript.Lexing
 
                 return token;
             }
+            else if (c == '"')
+            {
+                StringBuilder builder = new StringBuilder();
+
+                // Consume the " 
+                Reader.Next();
+
+                while (Reader.Current != '"' && Reader.HasNext())
+                {
+                    builder.Append(Reader.Current);
+                    Reader.Next();
+                }
+
+                // Consume the " 
+                Reader.Next();
+
+                Token token = new Token(Reader.Line, startIndex, Reader.Index, TokenType.String, builder.ToString());
+
+                return token;
+            }
             else if (IsNumeric(c))
             {
                 StringBuilder builder = new StringBuilder();
@@ -68,7 +88,7 @@ namespace ApryxScript.Lexing
                     builder.Append(Reader.Current);
                     Reader.Next();
 
-                    if(Reader.Current == '.')
+                    if (Reader.Current == '.')
                     {
                         builder.Append('.');
                         Reader.Next();
@@ -120,11 +140,41 @@ namespace ApryxScript.Lexing
 
                 return new Token(Reader.Line, startIndex, Reader.Index, TokenType.CurlyClose, "}");
             }
+            else if (c == ',')
+            {
+                Reader.Next();
+
+                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.CurlyClose, ",");
+            }
+            else if (c == '.')
+            {
+                Reader.Next();
+
+                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.CurlyClose, ".");
+            }
+            else if (c == ':')
+            {
+                Reader.Next();
+
+                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.Colon, ":");
+            }
             else if (c == ';')
             {
                 Reader.Next();
 
                 return new Token(Reader.Line, startIndex, Reader.Index, TokenType.SemiColon, ";");
+            }
+            else if (c == '=')
+            {
+                Reader.Next();
+
+                if(Reader.Current == '>')
+                {
+                    Reader.Next();
+                    return new Token(Reader.Line, startIndex, Reader.Index, TokenType.Operator, "=>");
+                }
+
+                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.Operator, "=");
             }
             else
             {

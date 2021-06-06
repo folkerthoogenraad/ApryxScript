@@ -1,1 +1,9 @@
-function main(){ }
+native function print(param: string);
+
+function main(){
+	print("This is my first test!");
+}
+
+function test() => int {
+	return 0;
+}

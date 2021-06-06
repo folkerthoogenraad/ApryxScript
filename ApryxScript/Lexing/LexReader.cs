@@ -23,6 +23,11 @@ namespace ApryxScript.Lexing
             }
         }
 
+        public bool HasCurrent()
+        {
+            return _Current != '\0';
+        }
+
         public bool HasNext()
         {
             return !EndOfStream;
