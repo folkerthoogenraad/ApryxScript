@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 
 namespace ApryxScript.Util
@@ -66,6 +67,19 @@ namespace ApryxScript.Util
         {
             if (Operators.ContainsKey(s)) return Operators[s];
             return OperatorType.None;
+        }
+
+        public static float GetFloatValue(string input)
+        {
+            return float.Parse(input, CultureInfo.InvariantCulture);
+        }
+        public static int GetIntValue(string input)
+        {
+            return int.Parse(input, CultureInfo.InvariantCulture);
+        }
+        public static double GetDoubleValue(string input)
+        {
+            return double.Parse(input, CultureInfo.InvariantCulture);
         }
     }
 }

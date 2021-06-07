@@ -17,7 +17,7 @@ namespace ApryxScript.Transform
 
         public void Visit(SyntaxNode node)
         {
-
+            Write("/*" + node.ToString() + "*/");
         }
         public void Write(SyntaxNode node)
         {
@@ -31,6 +31,38 @@ namespace ApryxScript.Transform
                 Visit((dynamic)f);
             }
         }
+
+        public void Visit(BlockStatement statement)
+        {
+            Write("{");
+            IncreaseTabs();
+            NewLine();
+
+            for(int i = 0; i < statement.Statements.Count; i++)
+            {
+                bool last = i == (statement.Statements.Count - 1);
+                var s = statement.Statements[i];
+
+                Write(s);
+
+                if (!last)
+                {
+                    NewLine();
+                }
+            }
+
+            DecreaseTabs();
+            NewLine();
+            Write("}");
+            NewLine();
+        }
+        public void Visit(ReturnStatement ret)
+        {
+            Write("return ");
+            Write(ret.Expression);
+            Write(";");
+        }
+
         public void Visit(ParameterSyntax param)
         {
             Write(param.NameAndType);
@@ -59,9 +91,15 @@ namespace ApryxScript.Transform
             }
 
             Write(")");
-            Write("{");
-            IncreaseTabs();
-            NewLine();
+
+            bool block = function.Body is BlockStatement && !function.Native;
+
+            if (!block)
+            {
+                Write("{");
+                IncreaseTabs();
+                NewLine();
+            }
 
             if (function.Native)
             {
@@ -71,10 +109,14 @@ namespace ApryxScript.Transform
             {
                 Write(function.Body);
             }
-            DecreaseTabs();
-            NewLine();
-            Write("}");
-            NewLine();
+
+            if (!block)
+            {
+                DecreaseTabs();
+                NewLine();
+                Write("}");
+                NewLine();
+            }
         }
         public void Visit(TypeNameSyntax type)
         {
@@ -86,6 +128,48 @@ namespace ApryxScript.Transform
             Write(" ");
             Write(nameAndType.Name);
         }
+        public void Visit(ExpressionStatement expression)
+        {
+            Write(expression.Expression);
+        }
+
+
+        // ================================================== //
+        // Expressions
+        // ================================================== //
+        public void Visit(IntegerConstantExpression type)
+        {
+            Write("" + type.Value);
+        }
+        public void Visit(IdentifierExpression type)
+        {
+            Write(type.Name);
+        }
+        public void Visit(StringConstantExpression type)
+        {
+            Write("\"");
+            Write(type.Value);
+            Write("\"");
+        }
+        public void Visit(InvocationExpression invoke)
+        {
+            Write(invoke.Expression);
+
+            Write("(");
+            for(int i = 0; i < invoke.Arguments.Count; i++)
+            {
+                bool last = i == invoke.Arguments.Count - 1;
+
+                Write(invoke.Arguments[i]);
+
+                if (!last)
+                {
+                    Write(", ");
+                }
+            }
+            Write(")");
+        }
+
 
         public string Result => Output.ToString();
 
@@ -98,7 +182,7 @@ namespace ApryxScript.Transform
             Write("\n");
 
             for (int i = 0; i < Tabs; i++)
-                Write("\t");
+                Write("  ");
         }
 
         public void IncreaseTabs()

@@ -47,6 +47,10 @@ namespace ApryxScript.Ast
     {
         public Expression Expression;
     }
+    public class ReturnStatement : Statement
+    {
+        public Expression Expression;
+    }
 
     public class BlockStatement : Statement
     {

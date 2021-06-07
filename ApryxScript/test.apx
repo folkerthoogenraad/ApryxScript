@@ -1,9 +1,9 @@
-native function print(param: string);
+native function print(param: string)
 
 function main(){
-	print("This is my first test!");
+	print("This is my first test!")
 }
 
 function test() => int {
-	return 0;
+	return 0
 }

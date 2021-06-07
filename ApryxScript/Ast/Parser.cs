@@ -36,7 +36,8 @@ namespace ApryxScript.Ast
                 switch (type)
                 {
                     case KeywordType.Function: return ParseFunction(native);
-                    case KeywordType.Native: Next();  return ParseStatement(true);
+                    case KeywordType.Native: Next(); return ParseStatement(true); // This is super ugly and hacky :)
+                    case KeywordType.Return: return ParseReturnStatement();
                 }
             }
             else if (Current.Type == TokenType.CurlyOpen)
@@ -114,9 +115,12 @@ namespace ApryxScript.Ast
                 function.ReturnType = ParseTypeName();
             }
 
-            function.Body = ParseStatement();
-
             function.Native = native;
+            
+            if (!function.Native)
+            {
+                function.Body = ParseStatement();
+            }
 
             return function;
         }
@@ -150,33 +154,79 @@ namespace ApryxScript.Ast
             return syntax;
         }
 
+        public ReturnStatement ParseReturnStatement()
+        {
+            if (Current.Type != TokenType.Keyword) UnexpectedToken(Current, TokenType.Keyword);
+            Next();
+
+            ReturnStatement statement = new ReturnStatement();
+
+            statement.Expression = ParseExpression();
+
+            return statement;
+        }
+
         public Expression ParseExpression(int detail = 7)
         {
             if (detail >= 8)
             {
                 return ParseExpression(7);
             }
-            else if (detail > 0)
+            else if (detail > 2)
             {
                 return ParseExpression(detail - 1);
             }
 
+            else if(detail == 2)
+            {
+                return ParseExpression(detail - 1);
+            }
+
+            // Function invocation
+            else if(detail == 1)
+            {
+                var expression = ParseExpression(detail - 1);
+
+                if (Current.Type != TokenType.BracketOpen) return expression;
+                Next();
+
+                // Wrap the expression in function invocation
+                InvocationExpression invoke = new InvocationExpression();
+
+                invoke.Expression = expression;
+
+                while(Current.Type != TokenType.BracketClose && HasNext())
+                {
+                    var exp = ParseExpression();
+
+                    invoke.Arguments.Add(exp);
+
+                    if (Current.Type == TokenType.Comma) Next();
+                }
+
+                if (Current.Type != TokenType.BracketClose) UnexpectedToken(Current, TokenType.BracketClose);
+                Next();
+
+                return invoke;
+            }
 
             // Identifiers, Constants, Etc.
-            if(detail == 0)
+            else if(detail == 0)
             {
                 Token t = Current;
                 Next();
 
                 if (t.Type == TokenType.String) return new StringConstantExpression(t.Data);
-                if (t.Type == TokenType.Integer) return new IntegerConstantExpression(t.Data);
-                if (t.Type == TokenType.Float) return new FloatConstantExpression(t.Data);
-                if (t.Type == TokenType.Double) return new DoubleConstantExpression(t.Data);
+                if (t.Type == TokenType.Integer) return new IntegerConstantExpression(Language.GetIntValue(t.Data));
+                if (t.Type == TokenType.Float) return new FloatConstantExpression(Language.GetFloatValue(t.Data));
+                if (t.Type == TokenType.Double) return new DoubleConstantExpression(Language.GetDoubleValue(t.Data));
                 if (t.Type == TokenType.Identifier) return new IdentifierExpression(t.Data);
 
                 // We can't parse this...
                 return null;
             }
+
+            return null;
         }
 
         public void UnexpectedToken(Token token)
