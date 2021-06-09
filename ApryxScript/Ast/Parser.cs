@@ -102,22 +102,26 @@ namespace ApryxScript.Ast
 
                 function.Parameters.Add(parameter);
 
-                if (Current.Type == TokenType.Comma) Next();
+                if (Current.Type == TokenType.Comma)
+                {
+                    Next();
+                }
             }
 
             if (Current.Type != TokenType.BracketClose) UnexpectedToken(Current, TokenType.BracketClose);
             Next();
 
-            if(Current.Type == TokenType.Operator && Current.OperatorType == OperatorType.Arrow)
+            if(Current.Type == TokenType.Colon)
             {
                 Next();
 
                 function.ReturnType = ParseTypeName();
             }
 
+
             function.Native = native;
             
-            if (!function.Native)
+            if (!function.Native) // Not native and not inline
             {
                 function.Body = ParseStatement();
             }
@@ -130,6 +134,18 @@ namespace ApryxScript.Ast
             if (Current.Type != TokenType.Identifier) UnexpectedToken(Current, TokenType.Identifier);
 
             TypeNameSyntax syntax = new TypeNameSyntax();
+
+            syntax.Name = Current.Data;
+
+            Next();
+
+            return syntax;
+        }
+        public NameSyntax ParseNameSyntax()
+        {
+            if (Current.Type != TokenType.Identifier) UnexpectedToken(Current, TokenType.Identifier);
+
+            NameSyntax syntax = new NameSyntax();
 
             syntax.Name = Current.Data;
 
@@ -172,42 +188,122 @@ namespace ApryxScript.Ast
             {
                 return ParseExpression(7);
             }
-            else if (detail > 2)
+            else if (detail > 5)
             {
                 return ParseExpression(detail - 1);
             }
 
+            // Add and subtract
+            else if (detail == 5)
+            {
+                var lhs = ParseExpression(detail - 1);
+
+                while (Current.OperatorType == OperatorType.Add || Current.OperatorType == OperatorType.Subtract)
+                {
+
+                    var op = new OperatorExpression();
+                    op.LeftExpression = lhs;
+                    op.Operator = Current.OperatorType;
+                    
+                    Next();
+                    op.RightExpression = ParseExpression(detail - 1);
+
+                    lhs = op;
+                }
+                return lhs;
+            }
+
+            // Multiply and divide
+            else if (detail == 4)
+            {
+                var lhs = ParseExpression(detail - 1);
+
+                while (Current.OperatorType == OperatorType.Multiply || Current.OperatorType == OperatorType.Divide)
+                {
+
+                    var op = new OperatorExpression();
+                    op.LeftExpression = lhs;
+                    op.Operator = Current.OperatorType;
+                    
+                    Next();
+                    
+                    op.RightExpression = ParseExpression(detail - 1); 
+
+                    lhs = op;
+                }
+                return lhs;
+            }
+            
+            else if(detail == 3)
+            {
+                return ParseExpression(detail - 1);
+            }
+
+            // Function invocation and dot lookup
             else if(detail == 2)
-            {
-                return ParseExpression(detail - 1);
-            }
-
-            // Function invocation
-            else if(detail == 1)
             {
                 var expression = ParseExpression(detail - 1);
 
-                if (Current.Type != TokenType.BracketOpen) return expression;
+                while(Current.Type == TokenType.BracketOpen || Current.Type == TokenType.Period)
+                {
+                    if(Current.Type == TokenType.BracketOpen)
+                    {
+                        Next();
+
+                        // Wrap the expression in function invocation
+                        InvocationExpression invoke = new InvocationExpression();
+
+                        invoke.Expression = expression;
+
+                        while(Current.Type != TokenType.BracketClose && HasNext())
+                        {
+                            var exp = ParseExpression();
+
+                            invoke.Arguments.Add(exp);
+
+                            if (Current.Type == TokenType.Comma)
+                            {
+                                Next();
+                            }
+                        }
+
+                        if (Current.Type != TokenType.BracketClose) UnexpectedToken(Current, TokenType.BracketClose);
+                        Next();
+
+                        expression = invoke;
+                    }
+                    else if(Current.Type == TokenType.Period)
+                    {
+                        Next();
+
+                        var mem = new MemberAccessExpression();
+                        mem.Expression = expression;
+                        mem.Member = ParseNameSyntax();
+
+                        expression = mem;
+                    }
+                    else
+                    {
+                        throw new Exception("Unknown token type, shouldn't ever happen");
+                    }
+                }
+
+                return expression;
+            }
+
+            // Bracketed expressions
+            else if (detail == 1)
+            {
+                if (Current.Type != TokenType.BracketOpen) return ParseExpression(detail - 1);
                 Next();
 
-                // Wrap the expression in function invocation
-                InvocationExpression invoke = new InvocationExpression();
-
-                invoke.Expression = expression;
-
-                while(Current.Type != TokenType.BracketClose && HasNext())
-                {
-                    var exp = ParseExpression();
-
-                    invoke.Arguments.Add(exp);
-
-                    if (Current.Type == TokenType.Comma) Next();
-                }
+                var expression = new BracketedExpression();
+                expression.Expression = ParseExpression();
 
                 if (Current.Type != TokenType.BracketClose) UnexpectedToken(Current, TokenType.BracketClose);
                 Next();
 
-                return invoke;
+                return expression;
             }
 
             // Identifiers, Constants, Etc.

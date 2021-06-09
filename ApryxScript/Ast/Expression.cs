@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ApryxScript.Util;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -12,6 +13,23 @@ namespace ApryxScript.Ast
     {
         public Expression Expression;
         public List<Expression> Arguments = new List<Expression>();
+    }
+
+    public class OperatorExpression : Expression
+    {
+        public Expression LeftExpression;
+        public OperatorType Operator;
+        public Expression RightExpression;
+    }
+
+    public class BracketedExpression : Expression
+    {
+        public Expression Expression;
+    }
+    public class MemberAccessExpression : Expression
+    {
+        public Expression Expression;
+        public NameSyntax Member;
     }
 
     public class IdentifierExpression : Expression

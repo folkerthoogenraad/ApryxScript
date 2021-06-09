@@ -27,7 +27,7 @@ namespace ApryxScript.Lexing
         String,
 
         Comma,
-        Dot,
+        Period,
 
         Colon,
         SemiColon,

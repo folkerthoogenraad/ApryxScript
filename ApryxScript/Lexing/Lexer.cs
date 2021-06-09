@@ -144,13 +144,13 @@ namespace ApryxScript.Lexing
             {
                 Reader.Next();
 
-                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.CurlyClose, ",");
+                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.Comma, ",");
             }
             else if (c == '.')
             {
                 Reader.Next();
 
-                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.CurlyClose, ".");
+                return new Token(Reader.Line, startIndex, Reader.Index, TokenType.Period, ".");
             }
             else if (c == ':')
             {

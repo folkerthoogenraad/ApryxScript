@@ -1,4 +1,5 @@
 ﻿using ApryxScript.Ast;
+using ApryxScript.Util;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,6 +22,11 @@ namespace ApryxScript.Transform
         }
         public void Write(SyntaxNode node)
         {
+            if(node == null)
+            {
+                Write("/* null */");
+                return;
+            }
             Visit((dynamic)node);
         }
 
@@ -122,6 +128,15 @@ namespace ApryxScript.Transform
         {
             Write(type.Name);
         }
+        public void Visit(NameSyntax name)
+        {
+            Write(name.Name);
+        }
+        public void Visit(EmptyStatement name)
+        {
+            // Do nothgin :) its empty bro
+            Write("/* empty */");
+        }
         public void Visit(NameAndTypeSyntax nameAndType)
         {
             Write(nameAndType.Type);
@@ -131,6 +146,7 @@ namespace ApryxScript.Transform
         public void Visit(ExpressionStatement expression)
         {
             Write(expression.Expression);
+            Write(";");
         }
 
 
@@ -156,7 +172,7 @@ namespace ApryxScript.Transform
             Write(invoke.Expression);
 
             Write("(");
-            for(int i = 0; i < invoke.Arguments.Count; i++)
+            for (int i = 0; i < invoke.Arguments.Count; i++)
             {
                 bool last = i == invoke.Arguments.Count - 1;
 
@@ -170,6 +186,37 @@ namespace ApryxScript.Transform
             Write(")");
         }
 
+        public void Visit(MemberAccessExpression member)
+        {
+            Write(member.Expression);
+            Write(".");
+            Write(member.Member);
+        }
+
+        public void Visit(OperatorExpression op)
+        {
+            // Write("(");
+            Write(op.LeftExpression);
+
+            switch (op.Operator)
+            {
+                case OperatorType.Add: Write("+"); break;
+                case OperatorType.Subtract: Write("-"); break;
+                case OperatorType.Multiply: Write("*"); break;
+                case OperatorType.Divide: Write("/"); break;
+                default: Write("/* ? */"); break;
+            }
+
+            Write(op.RightExpression);
+            // Write(")");
+        }
+
+        public void Visit(BracketedExpression brackets)
+        {
+            Write("(");
+            Write(brackets.Expression);
+            Write(")");
+        }
 
         public string Result => Output.ToString();
 

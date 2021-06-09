@@ -15,6 +15,9 @@ namespace ApryxScript.Util
         Class,
         Var,
         Return,
+
+        Namespace,
+        Use,
     }
 
     public enum OperatorType
@@ -46,6 +49,8 @@ namespace ApryxScript.Util
             Keywords.Add("struct", KeywordType.Struct);
             Keywords.Add("var", KeywordType.Var);
 
+            Keywords.Add("namespace", KeywordType.Namespace);
+            Keywords.Add("use", KeywordType.Use);
             Keywords.Add("return", KeywordType.Return);
 
             Operators.Add("+", OperatorType.Add);

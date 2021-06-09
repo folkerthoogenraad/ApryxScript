@@ -18,6 +18,10 @@ namespace ApryxScript.Ast
     {
         public string Name;
     }
+    public class NameSyntax : SyntaxNode
+    {
+        public string Name;
+    }
 
     public class NameAndTypeSyntax : SyntaxNode
     {

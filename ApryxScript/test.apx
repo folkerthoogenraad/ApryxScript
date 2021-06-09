@@ -1,9 +1,20 @@
-native function print(param: string)
+namespace test;
 
-function main(){
-	print("This is my first test!")
+function testPrecedence(): int {
+	return 3 * (3 + 4) * 5;
 }
 
-function test() => int {
-	return 0
+function testArguments(input: int): int {
+	return input * 2;
 }
+
+function testFunctionCall() {
+	testArguments(4);
+}
+
+function testString(): string {
+	return ("this " + "is").concat(" sparta!!");
+}
+
+function inline(): int 
+	return 4;
