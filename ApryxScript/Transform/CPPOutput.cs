@@ -73,7 +73,7 @@ namespace ApryxScript.Transform
         {
             Write(param.NameAndType);
         }
-        public void Visit(FunctionStatement function)
+        public void Visit(FunctionSyntax function)
         {
             if(function.ReturnType != null)
             {

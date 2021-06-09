@@ -80,13 +80,13 @@ namespace ApryxScript.Ast
             return block;
         }
 
-        public FunctionStatement ParseFunction(bool native)
+        public FunctionSyntax ParseFunction(bool native)
         {
             if (Current.Type != TokenType.Keyword) UnexpectedToken(Current, TokenType.Keyword);
 
             Next();
 
-            FunctionStatement function = new FunctionStatement();
+            FunctionSyntax function = new FunctionSyntax();
 
             function.Name = ParseTypeName();
 

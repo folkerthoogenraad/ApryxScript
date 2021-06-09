@@ -31,13 +31,23 @@ namespace ApryxScript.Ast
 
     public class CompilationUnit : SyntaxNode
     {
-        public List<Statement> Statements = new List<Statement>();
+        public List<SyntaxNode> Nodes = new List<SyntaxNode>();
     }
 
-    public class ClassStatement : Statement
+    public class ClassSyntax : SyntaxNode
     {
 
     }
+    public class FunctionSyntax : SyntaxNode
+    {
+        public bool Native = false;
+
+        public TypeNameSyntax Name;
+        public TypeNameSyntax ReturnType;
+        public List<ParameterSyntax> Parameters = new List<ParameterSyntax>();
+        public SyntaxNode Body = null;
+    }
+
     public class EmptyStatement : Statement
     {
 
@@ -55,20 +65,9 @@ namespace ApryxScript.Ast
     {
         public Expression Expression;
     }
-
     public class BlockStatement : Statement
     {
         public List<Statement> Statements = new List<Statement>();
-    }
-
-    public class FunctionStatement : Statement
-    {
-        public bool Native = false;
-
-        public TypeNameSyntax Name;
-        public TypeNameSyntax ReturnType;
-        public List<ParameterSyntax> Parameters = new List<ParameterSyntax>();
-        public SyntaxNode Body = null;
     }
 
 }

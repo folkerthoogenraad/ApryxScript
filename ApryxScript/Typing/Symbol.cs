@@ -18,7 +18,7 @@ namespace ApryxScript.Typing
 
     public class FunctionSymbol : TypeSymbol
     {
-        public FunctionStatement Statement;
+        public FunctionSyntax Statement;
         public TypeSymbol ReturnType;
     }
 
